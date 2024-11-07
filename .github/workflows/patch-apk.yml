@@ -5,7 +5,7 @@ on:
 
 jobs:
   patch-and-test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     
     steps:
     - name: Checkout repository
@@ -25,7 +25,13 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y wget unzip android-tools-adb android-tools-fastboot apktool aapt apksigner zipalign cpu-checker
+        sudo apt-get install -y wget unzip android-tools-adb android-tools-fastboot aapt apksigner zipalign cpu-checker
+
+        sudo wget https://raw.githubusercontent.com/iBotPeaches/Apktool/master/scripts/linux/apktool -O /usr/local/bin/apktool
+        sudo wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.5.0.jar -O /usr/local/bin/apktool.jar
+        sudo chmod +x /usr/local/bin/apktool
+        sudo chmod +x /usr/local/bin/apktool.jar
+
         pip install objection frida-tools setuptools
 
     - name: Setup Docker
