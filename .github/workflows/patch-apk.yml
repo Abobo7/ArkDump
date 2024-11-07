@@ -80,7 +80,7 @@ jobs:
         docker rm android-container
 
     - name: Upload patched APK
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: patched-apk
         path: dist/arknights.objection.apk
