@@ -27,7 +27,6 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y wget unzip android-tools-adb android-tools-fastboot apktool aapt apksigner zipalign cpu-checker
         pip install objection frida-tools setuptools
-
     - name: Setup Docker
       run: |
         sudo apt-get remove -y docker docker-engine docker.io containerd runc || true
@@ -42,29 +41,24 @@ jobs:
           sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
         sudo apt-get update
         sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
     - name: Download APK
       run: |
         wget -O arknights.apk "https://ak.hycdn.cn/apk/202410301849-2401-te3svuc43h63yfe8a4pk/arknights-backup-328-2401.apk"
+    - name: Patch APK
+      run: |
+        objection patchapk --source arknights.apk --architecture x86
         
     - name: Setup and run Android emulator
       run: |
         kvm-ok
         
         sudo docker pull budtmo/docker-android:emulator_12.0
-
         sudo docker run -d -p 6080:6080 -p 5554:5554 -p 5555:5555 -e EMULATOR_DEVICE="Samsung Galaxy S10" -e WEB_VNC=true --device /dev/kvm --name android-container budtmo/docker-android:emulator_12.0
-
         sleep 60
-
-    - name: Patch APK
-      run: |
-        objection patchapk --source arknights.apk
-
     - name: Install and test APK
       run: |
         adb devices
-        adb install arknights.objection.apk
+        adb install --abi x86 arknights.objection.apk
         adb shell am start com.hypergryph.arknights/com.u8.sdk.U8UnityContext
         sleep 10
         
@@ -75,13 +69,11 @@ jobs:
         EOL
         
         frida -U Gadget -l script.js
-
     - name: Cleanup
       if: always()
       run: |
         sudo docker stop android-container
         sudo docker rm android-container
-
     - name: Upload patched APK
       uses: actions/upload-artifact@v4
       with:
