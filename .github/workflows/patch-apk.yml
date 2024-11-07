@@ -1,0 +1,86 @@
+name: Patch and Test APK
+
+on:
+  workflow_dispatch:  # 手动触发
+
+jobs:
+  patch-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Set up Java
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt'
+        java-version: '11'
+
+    - name: Install dependencies
+      run: |
+        # 安装基本工具
+        sudo apt-get update
+        sudo apt-get install -y wget unzip android-tools-adb android-tools-fastboot apktool aapt
+
+        # 安装 Python 依赖
+        pip install objection frida-tools
+
+    - name: Setup Docker
+      run: |
+        sudo apt-get install -y docker.io
+        sudo systemctl start docker
+
+    - name: Download APK
+      run: |
+        wget -O arknights.apk "https://ak.hypergryph.com/download"
+
+    - name: Patch APK
+      run: |
+        objection patchapk --source arknights.apk --architecture x86
+        
+    - name: Setup and run Android emulator
+      run: |
+        # 拉取 Docker Android 镜像
+        docker pull budtmo/docker-android-x86:latest
+        
+        # 运行 Android 容器
+        docker run -d --name android-container -p 6080:6080 -p 5554:5554 -p 5555:5555 budtmo/docker-android-x86:latest
+        
+        # 等待模拟器启动
+        sleep 60
+
+    - name: Install and test APK
+      run: |
+        # 安装修改后的 APK
+        adb connect localhost:5555
+        sleep 5
+        adb install dist/arknights.objection.apk
+        
+        # 创建 Frida 脚本
+        cat > script.js << 'EOL'
+        Java.perform(function() {
+          // 这里添加你的 Frida 脚本内容
+          console.log("Frida script loaded");
+        });
+        EOL
+        
+        # 运行 Frida 脚本
+        frida -U -l script.js -f com.hypergryph.arknights --no-pause
+
+    - name: Cleanup
+      if: always()
+      run: |
+        docker stop android-container
+        docker rm android-container
+
+    - name: Upload patched APK
+      uses: actions/upload-artifact@v2
+      with:
+        name: patched-apk
+        path: dist/arknights.objection.apk
