@@ -55,7 +55,7 @@ jobs:
 
     - name: Download APK
       run: |
-        wget -O arknights.apk "https://ak.hypergryph.com/download"
+        wget -O arknights.apk "https://ak.hycdn.cn/apk/202410301849-2401-te3svuc43h63yfe8a4pk/arknights-backup-328-2401.apk"
 
     - name: Patch APK
       run: |
