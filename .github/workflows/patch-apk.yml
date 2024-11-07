@@ -66,6 +66,8 @@ jobs:
     - name: Install and test APK
       run: |
         adb devices
+        adb connect 127.0.0.1:5555
+        adb devices
         adb shell getprop ro.odm.product.cpu.abilist
         adb install --abi x86 arknights.objection.apk
         adb shell am start com.hypergryph.arknights/com.u8.sdk.U8UnityContext
