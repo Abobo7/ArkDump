@@ -62,11 +62,6 @@ jobs:
         redroid/redroid:12.0.0-latest
 
         sleep 60
-        
-        adb connect localhost:5555
-        sleep 5
-        
-        adb wait-for-device
 
     - name: Install and test APK
       run: |
