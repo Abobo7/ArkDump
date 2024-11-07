@@ -49,41 +49,34 @@ jobs:
 
     - name: Patch APK
       run: |
-        objection patchapk --source arknights.apk --architecture armeabi-v7a
+        objection patchapk --source arknights.apk --architecture x86
         
     - name: Setup and run ReDroid
       run: |
-        # 安装必要的内核模块
-        sudo modprobe binder_linux
+        sudo apt install linux-modules-extra-`uname -r`
+        sudo modprobe binder_linux devices="binder,hwbinder,vndbinder"
         sudo modprobe ashmem_linux
 
-        # 拉取 ReDroid 镜像
         sudo docker pull redroid/redroid:12.0.0-latest
 
-        # 运行 ReDroid 容器
-        sudo docker run -itd --privileged \
-          --memory 4096m \
-          -v /dev/binder:/dev/binder \
-          -v /dev/ashmem:/dev/ashmem \
-          -p 5555:5555 \
-          --name android-container \
-          redroid/redroid:12.0.0-latest
+        docker run -itd --rm --privileged \
+        --pull always \
+        -v ~/data:/data \
+        -p 5555:5555 \
+        redroid/redroid:12.0.0-latest
 
-        # 等待系统启动
         sleep 60
         
-        # 连接 adb
         adb connect localhost:5555
         sleep 5
         
-        # 等待设备完全启动
         adb wait-for-device
 
     - name: Install and test APK
       run: |
         adb devices
         adb shell getprop ro.odm.product.cpu.abilist
-        adb install --abi armeabi-v7a arknights.objection.apk
+        adb install --abi x86 arknights.objection.apk
         adb shell am start com.hypergryph.arknights/com.u8.sdk.U8UnityContext
         sleep 10
         
@@ -94,12 +87,6 @@ jobs:
         EOL
         
         frida -U Gadget -l script.js
-
-    - name: Cleanup
-      if: always()
-      run: |
-        sudo docker stop android-container
-        sudo docker rm android-container
 
     - name: Upload patched APK
       uses: actions/upload-artifact@v4
