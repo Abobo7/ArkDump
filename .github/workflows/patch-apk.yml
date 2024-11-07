@@ -49,7 +49,7 @@ jobs:
 
     - name: Patch APK
       run: |
-        objection patchapk --source arknights.apk --architecture x86
+        objection patchapk --source arknights.apk --architecture arm64-v8a
         
     - name: Setup and run Android emulator
       run: |
