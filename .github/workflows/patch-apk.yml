@@ -1,7 +1,7 @@
 name: Patch and Test APK
 
 on:
-  workflow_dispatch:  # 手动触发
+  workflow_dispatch:
 
 jobs:
   patch-and-test:
@@ -24,32 +24,22 @@ jobs:
 
     - name: Install dependencies
       run: |
-        # 安装基本工具
         sudo apt-get update
-        sudo apt-get install -y wget unzip android-tools-adb android-tools-fastboot apktool aapt apksigner zipalign
-
-        # 安装 Python 依赖
+        sudo apt-get install -y wget unzip android-tools-adb android-tools-fastboot apktool aapt apksigner zipalign cpu-checker
         pip install objection frida-tools setuptools
 
     - name: Setup Docker
       run: |
-        # 移除可能存在的旧版本
         sudo apt-get remove -y docker docker-engine docker.io containerd runc || true
-        
-        # 添加 Docker 官方 GPG key
         sudo apt-get update
         sudo apt-get install -y ca-certificates curl gnupg
         sudo install -m 0755 -d /etc/apt/keyrings
         curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
         sudo chmod a+r /etc/apt/keyrings/docker.gpg
-        
-        # 添加 Docker 官方仓库
         echo \
           "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
           $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
           sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-        
-        # 安装 Docker Engine
         sudo apt-get update
         sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
@@ -63,31 +53,26 @@ jobs:
         
     - name: Setup and run Android emulator
       run: |
-        # 拉取 Docker Android 镜像
-        sudo docker pull budtmo/docker-android:emulator_9.0
+        kvm-ok
         
-        # 运行 Android 容器
-        sudo docker run -d --name android-container -p 6080:6080 -p 5554:5554 -p 5555:5555 budtmo/docker-android:emulator_9.0
-        
-        # 等待模拟器启动
+        sudo docker pull budtmo/docker-android:emulator_12.0
+
+        sudo docker run -d -p 6080:6080 -p 5554:5554 -p 5555:5555 -e EMULATOR_DEVICE="Samsung Galaxy S10" -e WEB_VNC=true --device /dev/kvm --name android-container budtmo/docker-android:emulator_12.0
+
         sleep 600
 
     - name: Install and test APK
       run: |
-        # 安装修改后的 APK
         adb connect localhost:5555
         sleep 5
         adb install arknights.objection.apk
         
-        # 创建 Frida 脚本
         cat > script.js << 'EOL'
         Java.perform(function() {
-          // 这里添加你的 Frida 脚本内容
           console.log("Frida script loaded");
         });
         EOL
         
-        # 运行 Frida 脚本
         frida -U -l script.js -f com.hypergryph.arknights --no-pause
 
     - name: Cleanup
