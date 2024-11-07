@@ -65,6 +65,7 @@ jobs:
       run: |
         adb devices
         adb install arknights.objection.apk
+        adb shell am start com.hypergryph.arknights/com.u8.sdk.U8UnityContext
         
         cat > script.js << 'EOL'
         Java.perform(function() {
@@ -72,7 +73,7 @@ jobs:
         });
         EOL
         
-        frida -U -l script.js -f com.hypergryph.arknights
+        frida -U Gadget -l script.js
 
     - name: Cleanup
       if: always()
