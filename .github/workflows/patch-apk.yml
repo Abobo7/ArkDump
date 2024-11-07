@@ -53,10 +53,6 @@ jobs:
         
     - name: Setup and run ReDroid
       run: |
-        sudo apt install linux-modules-extra-`uname -r`
-        sudo modprobe binder_linux devices="binder,hwbinder,vndbinder"
-        sudo modprobe ashmem_linux
-
         sudo docker pull redroid/redroid:12.0.0-latest
 
         docker run -itd --rm --privileged \
