@@ -72,7 +72,7 @@ jobs:
         });
         EOL
         
-        frida -U -l script.js -f com.hypergryph.arknights -no--pause
+        frida -U -l script.js -f com.hypergryph.arknights
 
     - name: Cleanup
       if: always()
