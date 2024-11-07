@@ -26,7 +26,7 @@ jobs:
       run: |
         # 安装基本工具
         sudo apt-get update
-        sudo apt-get install -y wget unzip android-tools-adb android-tools-fastboot apktool aapt apksigner
+        sudo apt-get install -y wget unzip android-tools-adb android-tools-fastboot apktool aapt apksigner zipalign
 
         # 安装 Python 依赖
         pip install objection frida-tools setuptools
@@ -64,10 +64,10 @@ jobs:
     - name: Setup and run Android emulator
       run: |
         # 拉取 Docker Android 镜像
-        sudo docker pull budtmo/docker-android-x86:latest
+        sudo docker pull budtmo/docker-android:emulator_9.0
         
         # 运行 Android 容器
-        sudo docker run -d --name android-container -p 6080:6080 -p 5554:5554 -p 5555:5555 budtmo/docker-android-x86:latest
+        sudo docker run -d --name android-container -p 6080:6080 -p 5554:5554 -p 5555:5555 budtmo/docker-android:emulator_9.0
         
         # 等待模拟器启动
         sleep 60
