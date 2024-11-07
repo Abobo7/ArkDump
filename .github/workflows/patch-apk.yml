@@ -46,7 +46,7 @@ jobs:
         wget -O arknights.apk "https://ak.hycdn.cn/apk/202410301849-2401-te3svuc43h63yfe8a4pk/arknights-backup-328-2401.apk"
     - name: Patch APK
       run: |
-        objection patchapk --source arknights.apk --architecture x86
+        objection patchapk --source arknights.apk --architecture armeabi-v7a
         
     - name: Setup and run Android emulator
       run: |
@@ -58,7 +58,8 @@ jobs:
     - name: Install and test APK
       run: |
         adb devices
-        adb install --abi x86 arknights.objection.apk
+        adb shell getprop ro.odm.product.cpu.abilist
+        adb install --abi armeabi-v7a arknights.objection.apk
         adb shell am start com.hypergryph.arknights/com.u8.sdk.U8UnityContext
         sleep 10
         
