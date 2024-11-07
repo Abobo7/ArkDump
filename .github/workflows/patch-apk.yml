@@ -33,8 +33,25 @@ jobs:
 
     - name: Setup Docker
       run: |
-        sudo apt-get install -y docker.io
-        sudo systemctl start docker
+        # 移除可能存在的旧版本
+        sudo apt-get remove -y docker docker-engine docker.io containerd runc || true
+        
+        # 添加 Docker 官方 GPG key
+        sudo apt-get update
+        sudo apt-get install -y ca-certificates curl gnupg
+        sudo install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        sudo chmod a+r /etc/apt/keyrings/docker.gpg
+        
+        # 添加 Docker 官方仓库
+        echo \
+          "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+          $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+          sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        
+        # 安装 Docker Engine
+        sudo apt-get update
+        sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
     - name: Download APK
       run: |
@@ -47,10 +64,10 @@ jobs:
     - name: Setup and run Android emulator
       run: |
         # 拉取 Docker Android 镜像
-        docker pull budtmo/docker-android-x86:latest
+        sudo docker pull budtmo/docker-android-x86:latest
         
         # 运行 Android 容器
-        docker run -d --name android-container -p 6080:6080 -p 5554:5554 -p 5555:5555 budtmo/docker-android-x86:latest
+        sudo docker run -d --name android-container -p 6080:6080 -p 5554:5554 -p 5555:5555 budtmo/docker-android-x86:latest
         
         # 等待模拟器启动
         sleep 60
@@ -76,8 +93,8 @@ jobs:
     - name: Cleanup
       if: always()
       run: |
-        docker stop android-container
-        docker rm android-container
+        sudo docker stop android-container
+        sudo docker rm android-container
 
     - name: Upload patched APK
       uses: actions/upload-artifact@v4
