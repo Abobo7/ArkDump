@@ -162,7 +162,6 @@ jobs:
         
         mkdir -p Excel
         
-        # 遍历并重命名文件
         cd json_files
         while IFS=: read -r old_name new_name; do
           if [ -f "$old_name" ]; then
@@ -171,7 +170,6 @@ jobs:
         done < ../rename_map.txt
         cd ..
         
-        # 压缩处理后的JSON文件
         cd Excel
         zip -r ../Excel.zip ./*
         cd ..
@@ -179,5 +177,5 @@ jobs:
     - name: Upload processed JSON files
       uses: actions/upload-artifact@v4
       with:
-        name: processed-json-files
+        name: Excel
         path: Excel.zip
