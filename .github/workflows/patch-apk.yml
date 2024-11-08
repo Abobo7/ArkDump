@@ -105,9 +105,12 @@ jobs:
         chmod +x click.sh
 
         ./click.sh &
+        CLICK_PID=$!
         
-        timeout 600 frida -U Gadget -l script.js
-        pkill -f click.sh
+        # 运行Frida脚本10分钟
+        timeout 600 frida -U Gadget -l script.js || true
+        kill $CLICK_PID || true
+        exit 0
 
 
     - name: Export and Process JSON files
