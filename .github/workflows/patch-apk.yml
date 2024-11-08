@@ -117,8 +117,10 @@ jobs:
       run: |
         mkdir -p json_files
         
-        adb pull /storage/emulated/0/Android/data/com.hypergryph.arknights/files/ ./json_files/
-        
+        for file in $(adb shell ls /storage/emulated/0/Android/data/com.hypergryph.arknights/files/*.json); do
+          adb pull "/storage/emulated/0/Android/data/com.hypergryph.arknights/files/$(basename "$file")" ./json_files/
+        done
+
         cat > rename_map.txt << 'EOL'
         Torappu.ActivityTable.json:activity_table.json
         Torappu.Audio.Middleware.Data.TorappuAudioData.json:audio_data.json
