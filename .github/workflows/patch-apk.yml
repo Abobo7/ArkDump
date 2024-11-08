@@ -95,6 +95,10 @@ jobs:
           sleep 1
           adb shell input tap 962 902
           sleep 1
+          adb shell input tap 618 356
+          sleep 1
+          adb shell input tap 963 728
+          sleep 1
         done
         EOL
 
