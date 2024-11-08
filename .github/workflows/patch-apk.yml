@@ -106,12 +106,73 @@ jobs:
 
         ./click.sh &
         
-        # 运行Frida脚本
-        frida -U Gadget -l script.js
+        timeout 600 frida -U Gadget -l script.js
+        pkill -f click.sh
 
 
-    - name: Upload patched APK
+    - name: Export and Process JSON files
+      run: |
+        mkdir -p json_files
+        
+        adb pull /storage/emulated/0/Android/data/com.hypergryph.arknights/files/ ./json_files/
+        
+        cat > rename_map.txt << 'EOL'
+        Torappu.ActivityTable.json:activity_table.json
+        Torappu.Audio.Middleware.Data.TorappuAudioData.json:audio_data.json
+        System.Collections.Generic.Dictionary`2[System.String,Torappu.BattleEquipPack].json:battle_equip_table.json
+        Torappu.BuildingData.json:building_data.json
+        Torappu.CampaignTable.json:campaign_table.json
+        System.Collections.Generic.Dictionary`2[System.String,Torappu.ChapterData].json:chapter_table.json
+        Torappu.CharMetaTable.json:char_meta_table.json
+        Torappu.CharPatchData.json:char_patch_table.json
+        System.Collections.Generic.Dictionary`2[System.String,Torappu.CharacterData].json:character_table.json
+        Torappu.CharmData.json:charm_table.json
+        Torappu.CharWordTable.json:charword_table.json
+        Torappu.CheckInTable.json:checkin_table.json
+        Torappu.ClimbTowerTable.json:climb_tower_table.json
+        Torappu.EnemyHandBookDataGroup.json:enemy_handbook_table.json
+        Torappu.FavorTable.json:favor_table.json
+        Torappu.GachaData.json:gacha_table.json
+        Torappu.GameDataConsts.json:gamedata_const.json
+        Torappu.HandbookInfoTable.json:handbook_info_table.json
+        Torappu.InventoryData.json:item_table.json
+        Torappu.MedalData.json:medal_table.json
+        Torappu.MissionTable.json:mission_table.json
+        Torappu.OpenServerSchedule.json:open_server_table.json
+        System.Collections.Generic.Dictionary`2[System.String,Torappu.ReplicateTable].json:replicate_table.json
+        Torappu.RetroStageTable.json:retro_table.json
+        Torappu.RoguelikeTopicTable.json:roguelike_topic_table.json
+        Torappu.SandboxPermTable.json:sandbox_perm_table.json
+        Torappu.ShopClientData.json:shop_client_table.json
+        System.Collections.Generic.Dictionary`2[System.String,Torappu.SkillDataBundle].json:skill_table.json
+        Torappu.SkinTable.json:skin_table.json
+        Torappu.StageTable.json:stage_table.json
+        Torappu.StoryReviewMetaTable.json:story_review_meta_table.json
+        System.Collections.Generic.Dictionary`2[System.String,Torappu.StoryReviewGroupClientData].json:story_review_table.json
+        System.Collections.Generic.Dictionary`2[System.String,Torappu.StoryData].json:story_table.json
+        Torappu.TipTable.json:tip_table.json
+        Torappu.UniEquipTable.json:uniequip_table.json
+        Torappu.ZoneTable.json:zone_table.json
+        EOL
+        
+        mkdir -p Excel
+        
+        # 遍历并重命名文件
+        cd json_files
+        while IFS=: read -r old_name new_name; do
+          if [ -f "$old_name" ]; then
+            cp "$old_name" "../Excel/$new_name"
+          fi
+        done < ../rename_map.txt
+        cd ..
+        
+        # 压缩处理后的JSON文件
+        cd Excel
+        zip -r ../Excel.zip ./*
+        cd ..
+  
+    - name: Upload processed JSON files
       uses: actions/upload-artifact@v4
       with:
-        name: patched-apk
-        path: arknights.objection.apk
+        name: processed-json-files
+        path: Excel.zip
