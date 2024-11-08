@@ -86,7 +86,24 @@ jobs:
         });
         EOL
         
+        cat > click.sh << 'EOL'
+        while true; do
+          adb shell input tap 1126 809
+          sleep 1
+          adb shell input tap 1151 672
+          sleep 1
+          adb shell input tap 962 902
+          sleep 1
+        done
+        EOL
+
+        chmod +x click.sh
+
+        ./click.sh &
+        
+        # 运行Frida脚本
         frida -U Gadget -l script.js
+
 
     - name: Upload patched APK
       uses: actions/upload-artifact@v4
