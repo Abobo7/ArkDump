@@ -1,7 +1,9 @@
-name: Patch and Test APK
+name: Auto Dump Excel
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '15 2 * * *'
 
 jobs:
   patch-and-test:
