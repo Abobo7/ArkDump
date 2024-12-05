@@ -110,7 +110,7 @@ jobs:
         CLICK_PID=$!
         
 
-        timeout 360 frida -U Gadget -l script.js || true
+        timeout 600 frida -U Gadget -l script.js || true
         kill $CLICK_PID || true
         exit 0
 
